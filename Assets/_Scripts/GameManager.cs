@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,6 +36,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] public PlayerState playerState;
     [SerializeField] public EnemyState enemyState;
 
+    public List<CharacterSO> enemyDeckCards;
+    public List<CharacterSO> playerDeckCards;
+
     private void Awake()
     {
         if (Instance == null)
@@ -67,17 +71,22 @@ public class GameManager : MonoBehaviour
         enemyController.SetTurn(randomTurn);
         playerController.SetTurn(randomTurn);
 
+        enemyDeckCards = gameData.AllGameCards.OrderBy(x => Random.Range(0, int.MaxValue)).Take(4).ToList();
+
+        var playerDeckList = CardsSaver.instance.LoadSelectedCards();
+        playerDeckCards = CardsSaver.instance.GetCardsByNames(playerDeckList);
+
         Instance.playerState = PlayerState.CharacterSelect;
-        for (int i = 0; i < gameData.enemyCards.Count; i++)
+        for (int i = 0; i < 4; i++)
         {
             GameObject enemyCard = Instantiate(enemyCards[i], Vector3.zero, enemyCards[i].transform.rotation, enemyController.transform);
-            enemyCard.GetComponent<CharacterInfo>().Initialize(gameData.enemyCards[i]);
+            enemyCard.GetComponent<CharacterInfo>().Initialize(enemyDeckCards[i]);
         }
 
-        for (int i = 0; i < gameData.playerCards.Count; i++)
+        for (int i = 0; i < playerDeckCards.Count; i++)
         {
             Button playerCard = Instantiate(playerCards[i], Vector3.zero, playerCards[i].transform.rotation, playerController.transform).gameObject.GetComponent<Button>();
-            playerCard.GetComponent<CharacterInfo>().Initialize(gameData.playerCards[i]);
+            playerCard.GetComponent<CharacterInfo>().Initialize(playerDeckCards[i]);
             playerCard.GetComponent<CharacterInfo>().playerController = playerController;
 
             // Adds listener to enable and disable
@@ -91,6 +100,8 @@ public class GameManager : MonoBehaviour
     {
         CanPlayGame = false;
         endResultPanel.SetActive(true);
+        enemyDeckCards = null;
+        playerDeckCards = null;
     }
 
     public void ApplyDamageToPlayer(float damage)
@@ -144,10 +155,10 @@ public class GameManager : MonoBehaviour
 
     private void SelectRandomCards()
     {
-        if (gameData.enemyCards.Count > 0 && gameData.playerCards.Count > 0)
+        if (enemyDeckCards.Count > 0 && playerDeckCards.Count > 0)
         {
-            int randomEnemyCardIndex = UnityEngine.Random.Range(0, gameData.enemyCards.Count);
-            int randomPlayerCardIndex = UnityEngine.Random.Range(0, gameData.playerCards.Count);
+            int randomEnemyCardIndex = UnityEngine.Random.Range(0, enemyDeckCards.Count);
+            int randomPlayerCardIndex = UnityEngine.Random.Range(0, playerDeckCards.Count);
 
             GameObject enemyCard = enemyCards[randomEnemyCardIndex];
             GameObject playerCard = playerCards[randomPlayerCardIndex];

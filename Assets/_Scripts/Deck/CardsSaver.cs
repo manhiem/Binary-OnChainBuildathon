@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
@@ -39,7 +40,7 @@ public class CardsSaver : MonoBehaviour
 
     private void InitializeDefaultDeck()
     {
-        foreach (var character in GameManager.Instance.gameData.playerCards)
+        foreach (var character in GameManager.Instance.gameData.defaultPlayerCards)
         {
             selectedCardIds.Add(character.name);
         }
@@ -58,6 +59,11 @@ public class CardsSaver : MonoBehaviour
         {
             allCardIds.Add(character.name);
         }
+    }
+
+    public List<CharacterSO> GetCardsByNames(List<string> cardNames)
+    {
+        return GameManager.Instance.gameData.AllGameCards.Where(card => cardNames.Contains(card.name)).ToList();
     }
 
     public void SaveSelectedCards()

@@ -42,7 +42,7 @@ public class EnemyController : MonoBehaviour
         yield return new WaitForSeconds(randomSelectWaitTime);
         Debug.Log($"Enemy Character Selected");
 
-        selectedCharacter = GameManager.Instance.gameData.enemyCards[UnityEngine.Random.Range(0, 4)];
+        selectedCharacter = GameManager.Instance.enemyDeckCards[UnityEngine.Random.Range(0, 4)];
 
         GameManager.Instance.enemyState = GameManager.EnemyState.DamageSelect;
         int randomAttackWaitTime = UnityEngine.Random.Range(0, 5);
