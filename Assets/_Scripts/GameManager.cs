@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    public GameData gameData;
     [Header("Panels")]
     [SerializeField] GameObject startPanel;
     public GameObject cardsPanel;
@@ -61,14 +62,17 @@ public class GameManager : MonoBehaviour
         enemyController.SetTurn(randomTurn);
         playerController.SetTurn(randomTurn);
 
-        foreach(var card in enemyCards)
+        for(int i=0; i< gameData.enemyCards.Count; i++)
         {
-            GameObject enemyCard = Instantiate(card, Vector3.zero, card.transform.rotation, enemyController.transform);
+            GameObject enemyCard = Instantiate(enemyCards[i], Vector3.zero, enemyCards[i].transform.rotation, enemyController.transform);
+            enemyCard.GetComponent<CharacterInfo>().Initialize(gameData.enemyCards[i]);
         }
 
-        foreach (var card in playerCards)
+        for (int i = 0; i < gameData.playerCards.Count; i++)
         {
-            Button playerCard = Instantiate(card, Vector3.zero, card.transform.rotation, playerController.transform).gameObject.GetComponent<Button>();
+            Button playerCard = Instantiate(playerCards[i], Vector3.zero, playerCards[i].transform.rotation, playerController.transform).gameObject.GetComponent<Button>();
+            playerCard.GetComponent<CharacterInfo>().Initialize(gameData.playerCards[i]);
+            playerCard.GetComponent<CharacterInfo>().playerController = playerController;
             // Adds listener to enable and disable
             playerCard.onClick.AddListener(() =>
                 playerController.SelectBtnEnable()

@@ -2159,12 +2159,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f552a52e467988f4c853ca580d197a1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameData: {fileID: 11400000, guid: 33eb1afdf57bb274f95eade9be71aded, type: 2}
   startPanel: {fileID: 606647497}
   cardsPanel: {fileID: 1307179721}
   battlePanel: {fileID: 319730993}
   endResultPanel: {fileID: 528174218}
-  playerCardsHolder: {fileID: 895772895}
-  enemyCardsHolder: {fileID: 1054413866}
+  playerController: {fileID: 895772895}
+  enemyController: {fileID: 1054413866}
   damageHolder: {fileID: 851666714}
   enemyCards:
   - {fileID: 3931472113980817364, guid: 317d76b8cadaff04c873f136952eee4d, type: 3}

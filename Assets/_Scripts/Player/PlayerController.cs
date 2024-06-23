@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
 
     bool onCardSelected = false;
     bool isTurn = false;
+    public CharacterSO selectedCharacterData;
 
     void Start()
     {
@@ -54,10 +55,13 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            foreach (var damage in playerDamageList)
+            for(int i=0; i<playerDamageList.Count; i++)
             {
-                GameObject damageObject = Instantiate(damage, Vector3.zero, damage.transform.rotation, GameManager.Instance.damageHolder.transform);
+                GameObject damageObject = Instantiate(playerDamageList[i], Vector3.zero, playerDamageList[i].transform.rotation, GameManager.Instance.damageHolder.transform);
+                damageObject.GetComponent<DamageFunction>().Initialize(selectedCharacterData.CharacterAttacks[i]);
             }
+
+            selectedCharacterData = null;
         }
 
         onCardSelected = false;
