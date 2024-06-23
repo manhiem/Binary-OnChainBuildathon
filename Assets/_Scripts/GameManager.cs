@@ -12,7 +12,6 @@ public class GameManager : MonoBehaviour
     [Header("Panels")]
     [SerializeField] GameObject startPanel;
     public GameObject cardsPanel;
-    public GameObject battlePanel;
     [SerializeField] GameObject endResultPanel;
 
     [Header("Game Components")]

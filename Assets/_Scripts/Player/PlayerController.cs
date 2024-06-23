@@ -50,8 +50,6 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitUntil(() => GameManager.Instance.enemyState == GameManager.EnemyState.DamageSelect);
 
-        GameManager.Instance.battlePanel.SetActive(onCardSelected);
-        GameManager.Instance.cardsPanel.SetActive(!onCardSelected);
         GameManager.Instance.canRollTimer = false;
 
         if (!onCardSelected)
@@ -82,8 +80,6 @@ public class PlayerController : MonoBehaviour
         yield return new WaitUntil(() => GameManager.Instance.enemyState == GameManager.EnemyState.RoundEnded);
 
         Debug.Log($"ResetBattleScreen()");
-        GameManager.Instance.battlePanel.SetActive(onCardSelected);
-        GameManager.Instance.cardsPanel.SetActive(!onCardSelected);
 
         for (int i = 0; i < GameManager.Instance.damageHolder.transform.childCount; i++)
         {
