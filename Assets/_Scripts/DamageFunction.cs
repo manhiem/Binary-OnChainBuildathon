@@ -26,7 +26,7 @@ public class DamageFunction : MonoBehaviour
         if(isPlayer)
         {
             GameManager.Instance.ApplyDamageToEnemy(damage);
-            GameManager.Instance.playerController.ShowBattleScreen();
+            StartCoroutine(GameManager.Instance.playerController.ResetBattleScreen());
         }
         else
         {

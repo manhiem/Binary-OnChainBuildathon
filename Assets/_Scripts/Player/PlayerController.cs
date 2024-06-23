@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -38,24 +39,32 @@ public class PlayerController : MonoBehaviour
     {
         onCardSelected = !onCardSelected;
         selectCharacterBtn.SetActive(onCardSelected);
-        Debug.Log($"Select Button: {selectCharacterBtn.activeSelf}");
     }
 
     public void ShowBattleScreen()
     {
+        StartCoroutine(CallBattleScreen());
+    }
+
+    public IEnumerator CallBattleScreen()
+    {
+        yield return new WaitUntil(() => GameManager.Instance.enemyState == GameManager.EnemyState.DamageSelect);
+
         GameManager.Instance.battlePanel.SetActive(onCardSelected);
         GameManager.Instance.cardsPanel.SetActive(!onCardSelected);
+        GameManager.Instance.canRollTimer = false;
 
         if (!onCardSelected)
         {
-            for(int i=0; i< GameManager.Instance.damageHolder.transform.childCount; i++)
+            for (int i = 0; i < GameManager.Instance.damageHolder.transform.childCount; i++)
             {
                 Destroy(GameManager.Instance.damageHolder.transform.GetChild(i).gameObject);
             }
         }
         else
         {
-            for(int i=0; i<playerDamageList.Count; i++)
+            GameManager.Instance.playerState = GameManager.PlayerState.DamageSelect;
+            for (int i = 0; i < playerDamageList.Count; i++)
             {
                 GameObject damageObject = Instantiate(playerDamageList[i], Vector3.zero, playerDamageList[i].transform.rotation, GameManager.Instance.damageHolder.transform);
                 damageObject.GetComponent<DamageFunction>().Initialize(selectedCharacterData.CharacterAttacks[i]);
@@ -66,7 +75,23 @@ public class PlayerController : MonoBehaviour
 
         onCardSelected = false;
         selectCharacterBtn.SetActive(onCardSelected);
-        Debug.Log($"Select Button: {selectCharacterBtn.activeSelf}");
+    }
+
+    public IEnumerator ResetBattleScreen()
+    {
+        yield return new WaitUntil(() => GameManager.Instance.enemyState == GameManager.EnemyState.RoundEnded);
+
+        Debug.Log($"ResetBattleScreen()");
+        GameManager.Instance.battlePanel.SetActive(onCardSelected);
+        GameManager.Instance.cardsPanel.SetActive(!onCardSelected);
+
+        for (int i = 0; i < GameManager.Instance.damageHolder.transform.childCount; i++)
+        {
+            Destroy(GameManager.Instance.damageHolder.transform.GetChild(i).gameObject);
+        }
+
+        onCardSelected = false;
+        selectCharacterBtn.SetActive(onCardSelected);
     }
 
     public void ApplyDamage(float damage)
