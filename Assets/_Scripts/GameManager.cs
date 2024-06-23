@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject startPanel;
     public GameObject cardsPanel;
     [SerializeField] GameObject endResultPanel;
+    [SerializeField] DeckManager deckManager;
 
     [Header("Game Components")]
     public PlayerController playerController;

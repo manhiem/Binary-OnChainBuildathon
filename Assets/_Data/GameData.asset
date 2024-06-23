@@ -22,3 +22,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 182d2b316d9ddf841806242828f08842, type: 2}
   - {fileID: 11400000, guid: 4d8d9ba6f5dc10c4c9ba0b39181d4947, type: 2}
   - {fileID: 11400000, guid: 5ed8edb3847f47c49ab3b84f7d6125a0, type: 2}
+  AllGameCards:
+  - {fileID: 11400000, guid: 8c663829b731d69488b069a6b8f80b46, type: 2}
+  - {fileID: 11400000, guid: 4458743cc3ca55849bba3b04f384d9af, type: 2}
+  - {fileID: 11400000, guid: 12137eb88097166449cea8729d48cb09, type: 2}
+  - {fileID: 11400000, guid: 2f9cf2b029e99434694cbd124b357cff, type: 2}
+  - {fileID: 11400000, guid: 1ac7b0781ada6d14f97bc9eac7e288e7, type: 2}
+  - {fileID: 11400000, guid: 182d2b316d9ddf841806242828f08842, type: 2}
+  - {fileID: 11400000, guid: 4d8d9ba6f5dc10c4c9ba0b39181d4947, type: 2}
+  - {fileID: 11400000, guid: 5ed8edb3847f47c49ab3b84f7d6125a0, type: 2}

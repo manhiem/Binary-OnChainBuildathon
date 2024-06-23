@@ -7,4 +7,6 @@ public class GameData : ScriptableObject
 {
     public List<CharacterSO> playerCards;
     public List<CharacterSO> enemyCards;
+
+    public List<CharacterSO> AllGameCards;
 }
