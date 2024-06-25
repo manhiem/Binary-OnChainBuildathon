@@ -15,7 +15,7 @@ public class EnemyController : MonoBehaviour
 
     public void SetTurn(int turnValue)
     {
-        isTurn = turnValue == 0? true : false;
+        isTurn = turnValue == 0 ? true : false;
     }
 
     void Start()
@@ -35,8 +35,6 @@ public class EnemyController : MonoBehaviour
 
     public IEnumerator SelectCard()
     {
-        yield return new WaitUntil(() => GameManager.Instance.playerState == GameManager.PlayerState.CharacterSelect);
-
         GameManager.Instance.enemyState = GameManager.EnemyState.CharacterSelect;
         int randomSelectWaitTime = UnityEngine.Random.Range(0, 5);
         yield return new WaitForSeconds(randomSelectWaitTime);
@@ -44,15 +42,14 @@ public class EnemyController : MonoBehaviour
 
         selectedCharacter = GameManager.Instance.enemyDeckCards[UnityEngine.Random.Range(0, 4)];
 
-        GameManager.Instance.enemyState = GameManager.EnemyState.DamageSelect;
+
         int randomAttackWaitTime = UnityEngine.Random.Range(0, 5);
         yield return new WaitForSeconds(randomAttackWaitTime);
 
         selectedAttack = selectedCharacter.CharacterAttacks[UnityEngine.Random.Range(0, 4)];
         Debug.Log($"Enemy Attack Selected");
-        yield return new WaitUntil(() => GameManager.Instance.playerState == GameManager.PlayerState.DamageSelect);
 
-        GameManager.Instance.ApplyDamageToPlayer(selectedAttack.damage);
+        StartCoroutine(GameManager.Instance.ApplyDamageToPlayer(selectedAttack.damage));
         selectedCharacter = null;
         selectedAttack = null;
     }

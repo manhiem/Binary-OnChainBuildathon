@@ -48,12 +48,11 @@ public class PlayerController : MonoBehaviour
 
     public IEnumerator CallBattleScreen()
     {
-        yield return new WaitUntil(() => GameManager.Instance.enemyState == GameManager.EnemyState.DamageSelect);
-
         GameManager.Instance.canRollTimer = false;
 
         if (!onCardSelected)
         {
+            yield return new WaitUntil(() => GameManager.Instance.enemyState == GameManager.EnemyState.RoundEnded);
             for (int i = 0; i < GameManager.Instance.damageHolder.transform.childCount; i++)
             {
                 Destroy(GameManager.Instance.damageHolder.transform.GetChild(i).gameObject);
@@ -73,11 +72,13 @@ public class PlayerController : MonoBehaviour
 
         onCardSelected = false;
         selectCharacterBtn.SetActive(onCardSelected);
+
+        yield return null;
     }
 
     public IEnumerator ResetBattleScreen()
     {
-        yield return new WaitUntil(() => GameManager.Instance.enemyState == GameManager.EnemyState.RoundEnded);
+        yield return new WaitForSeconds(0);
 
         Debug.Log($"ResetBattleScreen()");
 

@@ -25,12 +25,12 @@ public class DamageFunction : MonoBehaviour
     {
         if(isPlayer)
         {
-            GameManager.Instance.ApplyDamageToEnemy(damage);
+            StartCoroutine(GameManager.Instance.ApplyDamageToEnemy(damage));
             StartCoroutine(GameManager.Instance.playerController.ResetBattleScreen());
         }
         else
         {
-            GameManager.Instance.ApplyDamageToPlayer(damage);
+            StartCoroutine(GameManager.Instance.ApplyDamageToPlayer(damage));
         }
     }
 }

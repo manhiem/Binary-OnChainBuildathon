@@ -93,7 +93,10 @@ public class GameManager : MonoBehaviour
             playerCard.onClick.AddListener(() =>
                 playerController.SelectBtnEnable()
                 );
-        };
+        }
+
+        enemyState = EnemyState.CharacterSelect;
+        playerState = PlayerState.CharacterSelect;
     }
 
     public void EndGame()
@@ -104,22 +107,28 @@ public class GameManager : MonoBehaviour
         playerDeckCards = null;
     }
 
-    public void ApplyDamageToPlayer(float damage)
+    public IEnumerator ApplyDamageToPlayer(float damage)
     {
-        Instance.enemyState = EnemyState.RoundEnded;
+        enemyState = EnemyState.DamageSelected;
+        yield return new WaitUntil(() => playerState == PlayerState.DamageSelected);
+
+        enemyState = EnemyState.RoundEnded;
         playerController.ApplyDamage(damage);
     }
 
-    public void ApplyDamageToEnemy(float damage)
+    public IEnumerator ApplyDamageToEnemy(float damage)
     {
-        Instance.playerState = PlayerState.RoundEnded;
+        playerState = PlayerState.DamageSelected;
+
+        timerText.text = $"Damaging Players!";
+        playerState = PlayerState.RoundEnded;
         enemyController.ApplyDamage(damage);
 
-        if (playerController.IsAlive && enemyController.IsAlive)
-        {
-            Instance.playerState = PlayerState.CharacterSelect;
-            StartRound();
-        }
+        yield return new WaitForSeconds(2f);
+        playerState = PlayerState.CharacterSelect;
+        StartRound();
+
+        yield return null;
     }
 
     private void StartRound()
@@ -172,14 +181,18 @@ public class GameManager : MonoBehaviour
     public enum PlayerState
     {
         CharacterSelect,
+        CharacterSelected,
         DamageSelect,
+        DamageSelected,
         RoundEnded
     }
 
     public enum EnemyState
     {
         CharacterSelect,
+        CharacterSelected,
         DamageSelect,
+        DamageSelected,
         RoundEnded
     }
 }

@@ -67,5 +67,8 @@ public class DeckManager : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+
+        isEquipping = false;
+        equippingCardID = null;
     }
 }
