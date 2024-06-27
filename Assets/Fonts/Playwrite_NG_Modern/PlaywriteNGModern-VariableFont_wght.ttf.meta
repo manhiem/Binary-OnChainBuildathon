@@ -1,0 +1,25 @@
+fileFormatVersion: 2
+guid: 6ea27aed508a24c45a3bb41536ee5c7e
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Playwrite NG Modern
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 22c5f9a0761ba5e42b706128d73226a9, type: 3}
+  - {fileID: 12800000, guid: f86d438c7786f954abbb7540bd6c4fb1, type: 3}
+  - {fileID: 12800000, guid: b68c084e64b4a3243baf5538d93577c8, type: 3}
+  - {fileID: 12800000, guid: c81c9031ca3aa2144adc091ca3511114, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
