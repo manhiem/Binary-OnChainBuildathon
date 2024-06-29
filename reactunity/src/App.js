@@ -12,7 +12,7 @@ const App = () => {
   });
 
   React.useEffect(() => {
-    unityContext.on("ConnectCoinbaseWallet", () => {
+    unityContext.on("abhisurya", () => {
       connectWallet();
     });
   }, [connectWallet, unityContext]);
