@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using Fusion;
 using UnityEngine;
 
 internal enum CarDriveType
@@ -15,8 +14,8 @@ public enum SpeedType
     KPH
 }
 
-[RequireComponent(typeof(Rigidbody))]
-public class CarController : MonoBehaviour
+[RequireComponent(typeof(Rigidbody), typeof(NetworkTransform))]
+public class CarController : NetworkBehaviour
 {
     [Header("Car Presets")]
     [SerializeField] private CarDriveType _carDriveType = CarDriveType.AllWheelDrive;
@@ -25,9 +24,6 @@ public class CarController : MonoBehaviour
     [Header("Car Components"), Space(7)]
     [SerializeField] private GameObject[] _wheelMeshes = new GameObject[4];
     public WheelCollider[] wheelColliders = new WheelCollider[4];
-    //[SerializeField] private WheelEffects[] _wheelEffects = new WheelEffects[4];
-    //[SerializeField] private MeshRenderer _brakeLightMeshRenderer;
-    //[SerializeField] private MeshRenderer _reverseLightMeshRenderer;
 
     [Header("Car Settings"), Space(7)]
     [Tooltip("The amount of offset to apply to the rigidbody center of mass.")]
@@ -66,7 +62,6 @@ public class CarController : MonoBehaviour
     [SerializeField] private LayerMask barrierLayer;
     [SerializeField] private float knockbackForce = 1000f;
 
-
     private Quaternion[] _wheelMeshLocalRotations;
     private float _steerAngle;
     private int _gearNum;
@@ -78,6 +73,12 @@ public class CarController : MonoBehaviour
     private Vector2 _smoothInputVelocity;
     private int _emissionPropertyId;
     private float _currentMaxSteerAngle;
+
+    [Networked]
+    public Vector3 NetworkedPosition { get; set; }
+
+    [Networked]
+    public Quaternion NetworkedRotation { get; set; }
 
     public bool Skidding { get; private set; }
     public float BrakeInput { get; private set; }
@@ -95,20 +96,47 @@ public class CarController : MonoBehaviour
             _wheelMeshLocalRotations[i] = _wheelMeshes[i].transform.localRotation;
         }
 
-
         _maxHandbrakeTorque = float.MaxValue;
         _rigidbody = GetComponent<Rigidbody>();
         _currentTorque = _fullTorqueOverAllWheels - (_tractionControl * _fullTorqueOverAllWheels);
         _rigidbody.centerOfMass += _centerOfMassOffset;
         _emissionPropertyId = Shader.PropertyToID("_EmissionColor");
+
+        // Ensure the NetworkTransform component is present
+        if (GetComponent<NetworkTransform>() == null)
+        {
+            gameObject.AddComponent<NetworkTransform>();
+        }
     }
 
-    private void FixedUpdate()
+    private void Start()
     {
-        CheckBarrierCollision();
-        // Other FixedUpdate logic as before...
+        if (NetworkRunnerHandler.Instance.loadingScreenManager != null)
+        {
+            NetworkRunnerHandler.Instance.loadingScreenManager.HideLoadingScreen();
+        }
     }
 
+    public override void FixedUpdateNetwork()
+    {
+        if (Object.HasInputAuthority)
+        {
+            CheckBarrierCollision();
+            // Handle movement based on inputs
+        }
+
+        if (Object.HasStateAuthority)
+        {
+            NetworkedPosition = transform.position;
+            NetworkedRotation = transform.rotation;
+        }
+        else
+        { 
+            transform.position = Vector3.Lerp(transform.position, NetworkedPosition, 0.2f);
+            transform.rotation = Quaternion.Slerp(transform.rotation, NetworkedRotation, 0.2f);
+        }
+
+    }
 
     private void CheckBarrierCollision()
     {
@@ -167,6 +195,8 @@ public class CarController : MonoBehaviour
 
     public void Move(float steering, float accel, float footBrake, float handBrake)
     {
+        if (!Object.HasInputAuthority) return;
+
         Vector2 input = new Vector2(steering, accel);
         _currentInputVector = Vector2.SmoothDamp(_currentInputVector, input, ref _smoothInputVelocity, _smoothInputSpeed);
         accel = _currentInputVector.y;
@@ -193,24 +223,16 @@ public class CarController : MonoBehaviour
 
         if (handBrake > 0f)
         {
-            float handBrakeTorque = handBrake * _maxHandbrakeTorque;
-            wheelColliders[2].brakeTorque = handBrakeTorque;
-            wheelColliders[3].brakeTorque = handBrakeTorque;
-            TurnBrakeLightsOn();
-        }
-        else
-        {
-            wheelColliders[2].brakeTorque = 0f;
-            wheelColliders[3].brakeTorque = 0f;
+            var hbTorque = handBrake * _maxHandbrakeTorque;
+            wheelColliders[2].brakeTorque = hbTorque;
+            wheelColliders[3].brakeTorque = hbTorque;
         }
 
         CalculateRevs();
         GearChanging();
+
         AddDownForce();
-        CheckForWheelSpin();
         TractionControl();
-        AntiRoll();
-        SetSteerAngle();
     }
 
     private void CapSpeed()
@@ -237,20 +259,22 @@ public class CarController : MonoBehaviour
         float thrustTorque;
         switch (_carDriveType)
         {
-            case CarDriveType.FrontWheelDrive:
-                thrustTorque = accel * (_currentTorque / 2f);
-                wheelColliders[0].motorTorque = wheelColliders[1].motorTorque = thrustTorque;
-                break;
-            case CarDriveType.RearWheelDrive:
-                thrustTorque = accel * (_currentTorque / 2f);
-                wheelColliders[2].motorTorque = wheelColliders[3].motorTorque = thrustTorque;
-                break;
             case CarDriveType.AllWheelDrive:
                 thrustTorque = accel * (_currentTorque / 4f);
                 for (int i = 0; i < 4; i++)
                 {
                     wheelColliders[i].motorTorque = thrustTorque;
                 }
+                break;
+
+            case CarDriveType.FrontWheelDrive:
+                thrustTorque = accel * (_currentTorque / 2f);
+                wheelColliders[0].motorTorque = wheelColliders[1].motorTorque = thrustTorque;
+                break;
+
+            case CarDriveType.RearWheelDrive:
+                thrustTorque = accel * (_currentTorque / 2f);
+                wheelColliders[2].motorTorque = wheelColliders[3].motorTorque = thrustTorque;
                 break;
         }
 
@@ -266,129 +290,46 @@ public class CarController : MonoBehaviour
                 wheelColliders[i].motorTorque = -_reverseTorque * footBrake;
             }
         }
-
-        if (footBrake > 0)
-        {
-            if (CurrentSpeed > 5 && Vector3.Angle(transform.forward, _rigidbody.velocity) < 50f)
-            {
-                TurnBrakeLightsOn();
-            }
-            else
-            {
-                TurnBrakeLightsOff();
-                TurnReverseLightsOn();
-            }
-        }
-        else
-        {
-            TurnBrakeLightsOff();
-            TurnReverseLightsOff();
-        }
-
     }
 
     private void SteerHelper()
     {
         for (int i = 0; i < 4; i++)
         {
-            wheelColliders[i].GetGroundHit(out WheelHit wheelHit);
-            if (wheelHit.normal == Vector3.zero)
+            WheelHit wheelhit;
+            wheelColliders[i].GetGroundHit(out wheelhit);
+            if (wheelhit.normal == Vector3.zero)
                 return;
         }
 
         if (Mathf.Abs(_oldRotation - transform.eulerAngles.y) < 10f)
         {
-            float turnAdjust = (transform.eulerAngles.y - _oldRotation) * _steerHelper;
-            Quaternion velRotation = Quaternion.AngleAxis(turnAdjust, Vector3.up);
+            var turnadjust = (transform.eulerAngles.y - _oldRotation) * _steerHelper;
+            Quaternion velRotation = Quaternion.AngleAxis(turnadjust, Vector3.up);
             _rigidbody.velocity = velRotation * _rigidbody.velocity;
         }
-
         _oldRotation = transform.eulerAngles.y;
-    }
-
-    private void AntiRoll()
-    {
-        float travelL = 1.0f;
-        float travelR = 1.0f;
-        bool groundedLf = wheelColliders[0].GetGroundHit(out WheelHit wheelHit);
-
-        if (groundedLf)
-            travelL = (-wheelColliders[0].transform.InverseTransformPoint(wheelHit.point).y - wheelColliders[0].radius) / wheelColliders[0].suspensionDistance;
-
-        bool groundedRf = wheelColliders[1].GetGroundHit(out wheelHit);
-
-        if (groundedRf)
-            travelR = (-wheelColliders[1].transform.InverseTransformPoint(wheelHit.point).y - wheelColliders[1].radius) / wheelColliders[1].suspensionDistance;
-
-        float antiRollForce = (travelL - travelR) * _antiRollVal;
-
-        if (groundedLf)
-            _rigidbody.AddForceAtPosition(wheelColliders[0].transform.up * -antiRollForce, wheelColliders[0].transform.position);
-
-        if (groundedRf)
-            _rigidbody.AddForceAtPosition(wheelColliders[1].transform.up * antiRollForce, wheelColliders[1].transform.position);
-
-        bool groundedLr = wheelColliders[2].GetGroundHit(out wheelHit);
-
-        if (groundedLr)
-            travelL = (-wheelColliders[2].transform.InverseTransformPoint(wheelHit.point).y - wheelColliders[2].radius) / wheelColliders[2].suspensionDistance;
-
-        bool groundedRr = wheelColliders[3].GetGroundHit(out wheelHit);
-
-        if (groundedRr)
-            travelR = (-wheelColliders[3].transform.InverseTransformPoint(wheelHit.point).y - wheelColliders[3].radius) / wheelColliders[3].suspensionDistance;
-
-        antiRollForce = (travelL - travelR) * _antiRollVal;
-
-        if (groundedLr)
-            _rigidbody.AddForceAtPosition(wheelColliders[2].transform.up * -antiRollForce, wheelColliders[2].transform.position);
-
-        if (groundedRr)
-            _rigidbody.AddForceAtPosition(wheelColliders[3].transform.up * antiRollForce, wheelColliders[3].transform.position);
     }
 
     private void AddDownForce()
     {
-        if (_downForce > 0)
-            _rigidbody.AddForce(_downForce * _rigidbody.velocity.magnitude * -transform.up);
+        wheelColliders[0].attachedRigidbody.AddForce(-transform.up * _downForce *
+                                                     wheelColliders[0].attachedRigidbody.velocity.magnitude);
     }
 
-    private void CheckForWheelSpin()
-    {
-        //for (int i = 0; i < 4; i++)
-        //{
-        //    wheelColliders[i].GetGroundHit(out WheelHit wheelHit);
-
-        //    if (Mathf.Abs(wheelHit.forwardSlip) >= _slipLimit || Mathf.Abs(wheelHit.sidewaysSlip) >= _slipLimit)
-        //    {
-        //        _wheelEffects[i].EmitTireSmoke();
-
-        //        if (!AnySkidSoundPlaying())
-        //        {
-        //            _wheelEffects[i].PlayAudio();
-        //        }
-        //        continue;
-        //    }
-
-        //    if (_wheelEffects[i].IsPlayingAudio)
-        //        _wheelEffects[i].StopAudio();
-
-        //    _wheelEffects[i].EndSkidTrail();
-        //}
-    }
-
-    void TractionControl()
+    private void TractionControl()
     {
         WheelHit wheelHit;
         switch (_carDriveType)
         {
-            case CarDriveType.FrontWheelDrive:
-                wheelColliders[0].GetGroundHit(out wheelHit);
-                AdjustTorque(wheelHit.forwardSlip);
-
-                wheelColliders[1].GetGroundHit(out wheelHit);
-                AdjustTorque(wheelHit.forwardSlip);
+            case CarDriveType.AllWheelDrive:
+                for (int i = 0; i < 4; i++)
+                {
+                    wheelColliders[i].GetGroundHit(out wheelHit);
+                    AdjustTorque(wheelHit.forwardSlip);
+                }
                 break;
+
             case CarDriveType.RearWheelDrive:
                 wheelColliders[2].GetGroundHit(out wheelHit);
                 AdjustTorque(wheelHit.forwardSlip);
@@ -396,12 +337,13 @@ public class CarController : MonoBehaviour
                 wheelColliders[3].GetGroundHit(out wheelHit);
                 AdjustTorque(wheelHit.forwardSlip);
                 break;
-            case CarDriveType.AllWheelDrive:
-                for (int i = 0; i < 4; i++)
-                {
-                    wheelColliders[i].GetGroundHit(out wheelHit);
-                    AdjustTorque(wheelHit.forwardSlip);
-                }
+
+            case CarDriveType.FrontWheelDrive:
+                wheelColliders[0].GetGroundHit(out wheelHit);
+                AdjustTorque(wheelHit.forwardSlip);
+
+                wheelColliders[1].GetGroundHit(out wheelHit);
+                AdjustTorque(wheelHit.forwardSlip);
                 break;
         }
     }
@@ -419,60 +361,6 @@ public class CarController : MonoBehaviour
             {
                 _currentTorque = _fullTorqueOverAllWheels;
             }
-        }
-    }
-
-    //private bool AnySkidSoundPlaying()
-    //{
-    //    for (int i = 0; i < 4; i++)
-    //    {
-    //        if (_wheelEffects[i].IsPlayingAudio)
-    //        {
-    //            return true;
-    //        }
-    //    }
-    //    return false;
-    //}
-
-    private void TurnBrakeLightsOn()
-    {
-        //_brakeLightMeshRenderer.material.SetColor(_emissionPropertyId, Color.white);
-
-        //if (!_brakeLightMeshRenderer.material.IsKeywordEnabled("_EMISSION"))
-        //    _brakeLightMeshRenderer.material.EnableKeyword("_EMISSION");
-    }
-
-    private void TurnBrakeLightsOff()
-    {
-        //_brakeLightMeshRenderer.material.SetColor(_emissionPropertyId, Color.black);
-    }
-
-    private void TurnReverseLightsOn()
-    {
-        //_reverseLightMeshRenderer.material.SetColor(_emissionPropertyId, Color.white);
-
-        //if (!_reverseLightMeshRenderer.material.IsKeywordEnabled("_EMISSION"))
-        //    _reverseLightMeshRenderer.material.EnableKeyword("_EMISSION");
-    }
-
-    private void TurnReverseLightsOff()
-    {
-        //_reverseLightMeshRenderer.material.SetColor(_emissionPropertyId, Color.black);
-    }
-
-    private void SetSteerAngle()
-    {
-        if (CurrentSpeed < 25f)
-        {
-            _currentMaxSteerAngle = Mathf.MoveTowards(_currentMaxSteerAngle, _maximumSteerAngle, 0.5f);
-        }
-        else if (CurrentSpeed > 25f && CurrentSpeed < 60f)
-        {
-            _currentMaxSteerAngle = Mathf.MoveTowards(_currentMaxSteerAngle, _maximumSteerAngle / 1.5f, 0.5f);
-        }
-        else if (CurrentSpeed > 60)
-        {
-            _currentMaxSteerAngle = Mathf.MoveTowards(_currentMaxSteerAngle, _maximumSteerAngle / 2f, 0.5f);
         }
     }
 }

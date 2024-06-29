@@ -55,6 +55,9 @@ public class MazeSpawner : MonoBehaviour
                 break;
         }
         mMazeGenerator.GenerateMaze();
+
+        Transform startCellTransform = null;
+
         for (int row = 0; row < Rows; row++)
         {
             for (int column = 0; column < Columns; column++)
@@ -65,6 +68,12 @@ public class MazeSpawner : MonoBehaviour
                 GameObject tmp;
                 tmp = Instantiate(Floor, transform.TransformPoint(new Vector3(x, 0, z)), Quaternion.Euler(0, 0, 0)) as GameObject;
                 tmp.transform.parent = transform;
+
+                if (row == 0 && column == 0) // Assuming the starting cell is at (0,0)
+                {
+                    startCellTransform = tmp.transform;
+                }
+
                 if (cell.WallRight)
                 {
                     tmp = Instantiate(Wall, transform.TransformPoint(new Vector3(x + CellWidth / 2, 0, z) + Wall.transform.position), Quaternion.Euler(0, 90, 0)) as GameObject; // right
@@ -92,6 +101,7 @@ public class MazeSpawner : MonoBehaviour
                 }
             }
         }
+
         if (Pillar != null)
         {
             for (int row = 0; row < Rows + 1; row++)
@@ -104,6 +114,15 @@ public class MazeSpawner : MonoBehaviour
                     tmp.transform.parent = transform;
                 }
             }
+        }
+
+        if (startCellTransform != null)
+        {
+            Manager.Instance.mazeStartPoint = startCellTransform;
+        }
+        else
+        {
+            Debug.LogError("Start cell not set.");
         }
     }
 }
