@@ -93,8 +93,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   knockbackForce: 1000
-  _NetworkedPosition: {x: 0, y: 0, z: 0}
-  _NetworkedRotation: {x: 0, y: 0, z: 0, w: 0}
 --- !u!54 &6700997330227129965
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -221,8 +219,6 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 9002370153467415306}
-  - {fileID: 4850804398648855514}
   - {fileID: 6595383049899002903}
   - {fileID: 4406348690465104730}
 --- !u!114 &4406348690465104730
