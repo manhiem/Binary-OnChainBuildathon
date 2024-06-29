@@ -17,11 +17,14 @@ const App = () => {
     });
   }, [connectWallet, unityContext]);
 
-  return (
-    <div id="react-root">
-      <Unity unityContext={unityContext} />
-    </div>
-  );
+    return (
+        <div>
+            <Unity unityContext={unityContext} />
+            <button onClick={() => unityContext.send("ConnectCoinbaseWallet")}>
+                Connect Wallet
+            </button>
+        </div>
+    );
 };
 
 export default App;
