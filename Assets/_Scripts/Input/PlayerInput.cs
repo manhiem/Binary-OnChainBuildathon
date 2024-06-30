@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInput : MonoBehaviour
+public class PlayerInput : NetworkBehaviour
 {
     private PlayerControls _playerControls;
     private CarController _carController;
@@ -54,7 +54,29 @@ public class PlayerInput : MonoBehaviour
 
     private void FixedUpdate()
     {
-        _carController.Move(turn, accel, accel, handBrake);
+
         _racingController.pressRace = isRaceStart;
+    }
+
+    public override void FixedUpdateNetwork()
+    {
+        if(Runner.TryGetInputForPlayer<PlayerData>(Object.InputAuthority, out var input))
+        {
+            _carController.Move(input.HorizontalInput, input.VerticalInput, input.VerticalInput, handBrake);
+        }
+    }
+
+    public enum PlayerInputButtons
+    {
+        None,
+        Brake,
+    }
+
+    public PlayerData GetPlayerNetworkInput()
+    {
+        PlayerData data = new PlayerData();
+        data.HorizontalInput = turn;
+        data.VerticalInput = accel;
+        return data;
     }
 }

@@ -4,8 +4,8 @@ import { CoinbaseWalletSDK } from '@coinbase/wallet-sdk';
 
 const APP_NAME = "YourAppName";
 const APP_LOGO_URL = "https://example.com/logo.png";
-const DEFAULT_ETH_JSONRPC_URL = "https://sepolia.base.org";
-const DEFAULT_CHAIN_ID = 84532; // Base
+const DEFAULT_ETH_JSONRPC_URL = "https://mainnet.infura.io/v3/your-project-id";
+const DEFAULT_CHAIN_ID = 1; // Mainnet
 
 const coinbaseWallet = new CoinbaseWalletSDK({
   appName: APP_NAME,
@@ -27,12 +27,13 @@ export const useCoinbaseWallet = () => {
 
   const connectWallet = async () => {
     try {
-      alert("In function!");
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
       setProvider(ethereum);
       console.log('Connected account:', accounts[0]);
+      return ethereum; // Return Ethereum provider instance
     } catch (error) {
       console.error('Connection error:', error);
+      throw error; // Handle error appropriately in your UI or logic
     }
   };
 

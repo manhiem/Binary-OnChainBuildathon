@@ -6,4 +6,8 @@ mergeInto(LibraryManager.library, {
   SendNFTImage: function(index) {
     window.dispatchReactUnityEvent("SendNFTImage", index);
   },
+
+  MintNFT: function() {
+    window.dispatchReactUnityEvent("MintNFT");
+  },
 });

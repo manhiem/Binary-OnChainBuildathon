@@ -38,4 +38,22 @@ const uploadToPinata = async (base64Image) => {
   }
 };
 
-export default uploadToPinata;
+const uploadMetadataToPinata = async (metadata) => {
+  const url = `https://api.pinata.cloud/pinning/pinJSONToIPFS`;
+
+  try {
+    const response = await axios.post(url, metadata, {
+      headers: {
+        'Content-Type': 'application/json',
+        pinata_api_key: PINATA_API_KEY,
+        pinata_secret_api_key: PINATA_SECRET_API_KEY,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading metadata to Pinata:', error);
+    return null;
+  }
+};
+
+export {uploadToPinata , uploadMetadataToPinata};

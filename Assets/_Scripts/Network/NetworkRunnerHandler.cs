@@ -1,81 +1,134 @@
-using UnityEngine;
 using Fusion;
 using Fusion.Sockets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
 {
-    public static NetworkRunnerHandler Instance;
-    [SerializeField] private NetworkPrefabRef playerPrefab;
-    private NetworkRunner networkRunner;
-    public LoadingScreenManager loadingScreenManager;
+    public event Action OnPlayerJoinedSuccessfully;
+    public event Action OnPlayerRunnerConnection;
+    [SerializeField]
+    private NetworkRunner runnerPrefab;
+    private NetworkRunner networkRunnerInstance;
+    [SerializeField]
+    private LoadingScreenManager loadingScreenManager;
 
-    private void Awake()
+    private void Start()
     {
-        if(Instance == null)
+        StartGame(GameMode.AutoHostOrClient, "TestRoom");
+    }
+    public async void StartGame(GameMode mode, string roomCode)
+    {
+        loadingScreenManager.ShowLoadingScreen();
+        OnPlayerRunnerConnection?.Invoke();
+        if (networkRunnerInstance == null)
         {
-            Instance = this;
+            networkRunnerInstance = Instantiate(runnerPrefab);
         }
 
-        loadingScreenManager = FindObjectOfType<LoadingScreenManager>();
-        if (loadingScreenManager != null)
+        networkRunnerInstance.AddCallbacks(this);
+        networkRunnerInstance.ProvideInput = true;
+        var StartGameArgs = new StartGameArgs()
         {
-            loadingScreenManager.ShowLoadingScreen();
-        }
+            GameMode = mode,
+            SessionName = roomCode,
+            PlayerCount = 4,
+            SceneManager = networkRunnerInstance.GetComponent<INetworkSceneManager>(),
+        };
 
-        networkRunner = gameObject.AddComponent<NetworkRunner>();
-        networkRunner.ProvideInput = true;
-        StartGame();
+        var res = await networkRunnerInstance.StartGame(StartGameArgs);
+        if (res.Ok)
+        {
+            const string SCENE_NAME = "LevelDesign";
+            await networkRunnerInstance.LoadScene(SCENE_NAME);
+            Debug.Log($"Created room with roomCode as {roomCode}");
+        }
+        else
+        {
+            Debug.Log($"Could not start the game due to {res.ErrorMessage}");
+        }
     }
 
-    public void StartGame()
+    public void ShutDown()
     {
-        var clientTask = networkRunner.StartGame(new StartGameArgs
-        {
-            GameMode = GameMode.AutoHostOrClient,
-            SessionName = "TestRoom",
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
-        });
+        networkRunnerInstance.Shutdown();
+    }
 
-        clientTask.ContinueWith((task) =>
-        {
-            if (task.Exception != null)
-            {
-                Debug.LogError($"Failed to start: {task.Exception}");
-            }
-        });
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
+    {
+        Debug.Log($"Connection Failed due to {reason}");
+    }
+
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
+    {
+        Debug.Log($"On Connect Request");
+    }
+
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
+    {
+        Debug.Log($"On Custom Authentication Response");
+    }
+
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
+    {
+        Debug.Log($"On Host Migration");
+    }
+
+    public void OnInput(NetworkRunner runner, NetworkInput input)
+    {
+        Debug.Log($"On Input");
+    }
+
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
+    {
+        Debug.Log($"On Input Missing");
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (runner.IsServer)
-        {
-            GameObject car = runner.Spawn(playerPrefab, new Vector3(3.88000011f, 0.0599999987f, -28.2900009f), Quaternion.identity, player).gameObject;
-            Camera.main.GetComponent<CarFollowCamera>().car = car.transform;
-            Camera.main.GetComponent<HideBetweenCarAndCamera>().car = car.transform;
-        }
+        OnPlayerJoinedSuccessfully?.Invoke();
+        loadingScreenManager.HideLoadingScreen();
+        Debug.Log($"{player.PlayerId} has joined!");
     }
 
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
-    public void OnInput(NetworkRunner runner, NetworkInput input) { }
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
-    public void OnConnectedToServer(NetworkRunner runner)
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-
+        Debug.Log($"{player.PlayerId} has left!");
     }
-    public void OnDisconnectedFromServer(NetworkRunner runner) { }
-    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
-    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
-    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
-    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
-    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
-    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ArraySegment<byte> data) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
-    public void OnSceneLoadStart(NetworkRunner runner) { }
+
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ArraySegment<byte> data)
+    {
+        Debug.Log($"On Reliable Data Recieved");
+    }
+
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+        Debug.Log($"Done Loading the Scene");
+    }
+
+    public void OnSceneLoadStart(NetworkRunner runner)
+    {
+        Debug.Log($"Started Loading the Scene");
+    }
+
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
+    {
+        Debug.Log($"On Session List Updated");
+    }
+
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
+    {
+        SceneManager.LoadScene("Auth");
+        Debug.Log($"Server has been shutdown use to {shutdownReason}");
+    }
+
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
+    {
+        Debug.Log($"On User Simulation Message {message}");
+    }
 
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
     {
@@ -87,9 +140,14 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
 
     }
 
+    public void OnConnectedToServer(NetworkRunner runner)
+    {
+        Debug.Log($"{runner.name} connected to server");
+    }
+
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
     {
-
+        Debug.Log($"{runner.name} disconnected from server");
     }
 
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
