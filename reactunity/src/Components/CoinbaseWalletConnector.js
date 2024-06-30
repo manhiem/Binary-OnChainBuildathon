@@ -27,7 +27,8 @@ export const useCoinbaseWallet = () => {
 
   const connectWallet = async () => {
     try {
-      const accounts = await ethereum.send('eth_requestAccounts');
+      alert("In function!");
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
       setProvider(ethereum);
       console.log('Connected account:', accounts[0]);
     } catch (error) {

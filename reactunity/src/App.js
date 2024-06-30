@@ -1,30 +1,35 @@
-import React from 'react';
-import {Unity,  useUnityContext } from 'react-unity-webgl'; // Import Unity and useUnityContext
-import { useCoinbaseWallet } from './Components/CoinbaseWalletConnector'; // Import your CoinbaseWalletConnector
+import React, { useEffect, useCallback } from 'react';
+import { Unity, useUnityContext } from 'react-unity-webgl';
+import { useCoinbaseWallet } from './Components/CoinbaseWalletConnector';
 
 const App = () => {
   const { connectWallet } = useCoinbaseWallet();
-  const unityContext = useUnityContext({
-    loaderUrl: "Build/build.loader.js",
-    dataUrl: "Build/build.data",
-    frameworkUrl: "Build/build.framework.js",
-    codeUrl: "Build/build.wasm",
+  const { unityProvider, addEventListener, removeEventListener } = useUnityContext({
+    loaderUrl: 'Build/build.loader.js',
+    dataUrl: 'Build/build.data',
+    frameworkUrl: 'Build/build.framework.js',
+    codeUrl: 'Build/build.wasm',
   });
 
-  React.useEffect(() => {
-    unityContext.on("abhisurya", () => {
-      connectWallet();
-    });
-  }, [connectWallet, unityContext]);
+  const handleSetScore = useCallback(() => {
+    connectWallet();
+  }, [connectWallet]);
 
-    return (
-        <div>
-            <Unity unityContext={unityContext} />
-            <button onClick={() => unityContext.send("ConnectCoinbaseWallet")}>
-                Connect Wallet
-            </button>
-        </div>
-    );
+  useEffect(() => {
+    addEventListener("ConnectCoinbaseWallet", handleSetScore);
+    return () => {
+      removeEventListener("ConnectCoinbaseWallet", handleSetScore);
+    };
+  }, [addEventListener, removeEventListener, handleSetScore]);
+
+  return (
+    <div>
+      <Unity unityProvider={unityProvider} />
+      <button onClick={() => unityProvider.send('ConnectCoinbaseWallet')}>
+        Connect Wallet
+      </button>
+    </div>
+  );
 };
 
 export default App;
