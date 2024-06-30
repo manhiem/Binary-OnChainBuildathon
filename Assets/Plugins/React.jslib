@@ -3,7 +3,7 @@ mergeInto(LibraryManager.library, {
     window.dispatchReactUnityEvent("ConnectCoinbaseWallet");
   },
 
-  SendNFTImage: function(imageName) {
-    window.dispatchReactUnityEvent("SendNFTImage", UTF8ToString(imageName));
+  SendNFTImage: function(index) {
+    window.dispatchReactUnityEvent("SendNFTImage", index);
   },
 });

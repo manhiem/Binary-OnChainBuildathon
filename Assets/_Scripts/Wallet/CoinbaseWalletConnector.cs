@@ -8,7 +8,7 @@ public class CoinbaseWalletConnector : MonoBehaviour
     private static extern void ConnectCoinbaseWallet();
 
     [DllImport("__Internal")]
-    private static extern void SendNFTImage(string imageString);
+    private static extern void SendNFTImage(int index);
 
     public Button connectButton;
     public Button nftButton;
@@ -27,11 +27,7 @@ public class CoinbaseWalletConnector : MonoBehaviour
 
     void OnNFTButtonClicked()
     {
-        // Convert the texture to a byte array
-        byte[] imageBytes = imageTexture.EncodeToPNG();
-        // Convert the byte array to a base64 string
-        string base64Image = System.Convert.ToBase64String(imageBytes);
-
-        SendNFTImage(base64Image);
+        int randomIndex = Random.Range(0, 4);
+        SendNFTImage(randomIndex);
     }
 }
