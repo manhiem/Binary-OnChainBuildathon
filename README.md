@@ -6,6 +6,9 @@
 ## Summary
 01 Realm is a groundbreaking web-based game that merges social interaction with immersive gaming in a 3D universe. Utilizing NFT characters within a fully decentralized environment on the Base network, players explore an open world filled with interactive environments and competitive leaderboards. Free entry allows accessibility, while the need for fuel to continue exploration adds an element of excitement and unpredictability. This game redefines social gaming, offering dynamic engagement and endless opportunities within a decentralized framework.
 
+## Problem it Solves
+The web3 ecosystem presents complex technologies that are often daunting for the average user. 01 Realm addresses this by providing an accessible entry point into blockchain gaming. It simplifies the user experience while leveraging the benefits of decentralized technologies, offering a platform where players can engage socially and competitively in a vibrant 3D environment.
+
 ## Inspiration
 The web3 ecosystem envisions a world powered by decentralized technologies, yet these remain complex for the average user. With 01 Realm, we aim to make the decentralized gaming experience accessible and engaging. Our inspiration stemmed from the desire to transform social interactions and gaming by creating a 3D universe where players can connect, compete, and explore using unique NFT characters. We wanted to break away from the traditional social media experience and offer a vibrant, interactive alternative that leverages the power of blockchain technology.
 
