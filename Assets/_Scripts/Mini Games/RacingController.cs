@@ -1,11 +1,13 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.UI;
 
 public class RacingController : MonoBehaviour
 {
     public PlayerInput playerInput;
     public TextMeshProUGUI raceTimerText;
+    public Button garageButton;
 
     private bool raceStarted = false;
     private float startTime;
@@ -15,6 +17,31 @@ public class RacingController : MonoBehaviour
     private Transform endPoint;
     private int coinsCollected = 0;
     private bool isMaze = false;
+
+    [SerializeField] Sprite[] nftImages;
+    [SerializeField] Image nftImage;
+    [SerializeField] TextMeshProUGUI walletAddress;
+    [SerializeField] TextMeshProUGUI userName;
+    [SerializeField] TextMeshProUGUI nickName;
+
+    private void Start()
+    {
+        StartCoroutine(SetPlayerData());
+    }
+
+    public IEnumerator SetPlayerData()
+    {
+        if(!PlayerPrefs.HasKey("PlayerID"))
+        {
+            yield return new WaitUntil(() => PlayerPrefs.HasKey("Nickname"));
+        }
+
+        nftImage.sprite = nftImages[PlayerPrefs.GetInt("Car")];
+        nickName.text = PlayerPrefs.GetString("Nickname");
+
+        // TODO: Update Wallet Address in Username
+        //userName.text = PlayerPrefs.GetString("PlayerID");
+    }
 
     void Update()
     {
@@ -113,7 +140,25 @@ public class RacingController : MonoBehaviour
                 isMaze = true; // Set to maze mode
             }
         }
+        
+        if(other.gameObject.layer == 10)
+        {
+            garageButton.gameObject.SetActive(true);
+        }
     }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.layer == 10)
+        {
+            garageButton.gameObject.SetActive(false);
+        }
+    }
+
+    public void DisplayGarageCanvas()
+    {
+        Manager.Instance.garageCanvas.SetActive(true);
+    } 
 
     IEnumerator StartMaze()
     {

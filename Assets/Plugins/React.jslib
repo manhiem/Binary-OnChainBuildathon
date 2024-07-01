@@ -1,4 +1,8 @@
 mergeInto(LibraryManager.library, {
+  CreateProfile: function() {
+    window.dispatchReactUnityEvent("CreateProfile");
+  },
+
   ConnectCoinbaseWallet: function () {
     window.dispatchReactUnityEvent("ConnectCoinbaseWallet");
   },

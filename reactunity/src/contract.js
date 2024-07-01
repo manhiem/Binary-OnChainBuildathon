@@ -1,7 +1,7 @@
 import { ethers, provider } from 'ethers';
 
 // Replace with your contract address
-const contractAddress = 'YOUR_CONTRACT_ADDRESS_HERE';
+const contractAddress = '0x85084eF1773aC4917AAA8Fc30Ef08703BBD1A725';
 
 // Replace with your contract ABI
 const contractABI = [

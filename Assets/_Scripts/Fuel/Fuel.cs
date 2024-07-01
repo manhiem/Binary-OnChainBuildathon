@@ -1,9 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Fusion;
 using System.Collections;
 
-public class Fuel : NetworkBehaviour
+public class Fuel : MonoBehaviour
 {
     public float maxFuel = 10f;
     public float currentFuel;
@@ -18,13 +17,9 @@ public class Fuel : NetworkBehaviour
         UpdateFuelUI();
     }
 
-    public override void FixedUpdateNetwork()
+    public void Update()
     {
-        // Network synchronization of fuel level
-        if (Runner.IsForward)
-        {
-            DepleteFuel(Runner.DeltaTime * depletionRate / 60f);
-        }
+        DepleteFuel(Time.deltaTime * depletionRate / 60f);
     }
 
     public void DepleteFuel(float amount)
@@ -74,6 +69,13 @@ public class Fuel : NetworkBehaviour
 
     public void OnRefuelButtonClicked()
     {
+        int refilledTimes = PlayerPrefs.GetInt("Refill");
+        if (refilledTimes >= 5)
+        {
+            Debug.Log($"Filled more than 5 times");
+            return;
+        }
+
         GameObject player = this.gameObject;
         Fuel playerFuel = player.GetComponent<Fuel>();
 
@@ -81,6 +83,8 @@ public class Fuel : NetworkBehaviour
         {
             float amountToRefill = playerFuel.maxFuel - playerFuel.currentFuel;
             playerFuel.RefillFuel(amountToRefill);
+            refilledTimes += 1;
+            PlayerPrefs.SetInt("Refill", refilledTimes);
         }
     }
 }

@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { Web3Provider } from '@ethersproject/providers';
 import { CoinbaseWalletSDK } from '@coinbase/wallet-sdk';
 
-const APP_NAME = "YourAppName";
+const APP_NAME = "Binary";
 const APP_LOGO_URL = "https://example.com/logo.png";
-const DEFAULT_ETH_JSONRPC_URL = "https://mainnet.infura.io/v3/your-project-id";
-const DEFAULT_CHAIN_ID = 1; // Mainnet
+const DEFAULT_ETH_JSONRPC_URL = "https://mainnet.infura.io/v3/b971c6e6851046ff84d82c00081c2388";
+const DEFAULT_CHAIN_ID = 84532; // Mainnet
 
 const coinbaseWallet = new CoinbaseWalletSDK({
   appName: APP_NAME,

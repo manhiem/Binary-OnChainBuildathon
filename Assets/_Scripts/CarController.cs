@@ -65,6 +65,7 @@ public class CarController : MonoBehaviour
     [Header("Knockback Settings")]
     [SerializeField] private LayerMask barrierLayer;
     [SerializeField] private float knockbackForce = 1000f;
+    [SerializeField] Fuel carFuel;
 
 
     private Quaternion[] _wheelMeshLocalRotations;
@@ -175,6 +176,8 @@ public class CarController : MonoBehaviour
 
     public void Move(float steering, float accel, float footBrake, float handBrake)
     {
+        if (carFuel.currentFuel <= 0) return;
+
         Vector2 input = new Vector2(steering, accel);
         _currentInputVector = Vector2.SmoothDamp(_currentInputVector, input, ref _smoothInputVelocity, _smoothInputSpeed);
         accel = _currentInputVector.y;

@@ -1,9 +1,9 @@
-using Fusion;
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInput : NetworkBehaviour
+public class PlayerInput : MonoBehaviour
 {
     private PlayerControls _playerControls;
     private CarController _carController;
@@ -20,6 +20,12 @@ public class PlayerInput : NetworkBehaviour
     public static Action<bool> OnPause;
     public static Action<bool> OnRaceStart;
 
+    [SerializeField] private Canvas mainCanvas;
+    [SerializeField] private Camera playerCamera;
+    [SerializeField] private GameObject nicknamePanel; // Reference to the nickname panel in the scene
+
+    [SerializeField] private GameObject[] carModels;
+
     private void Awake()
     {
         _playerControls = new PlayerControls();
@@ -31,6 +37,38 @@ public class PlayerInput : NetworkBehaviour
         _carController = GetComponent<CarController>();
         _resetCar = GetComponent<ResetCar>();
         _racingController = GetComponent<RacingController>();
+
+        string nickname = PlayerPrefs.GetString("Nickname", "");
+
+        if (string.IsNullOrEmpty(nickname))
+        {
+            // Enable the nickname panel if nickname does not exist
+            if (nicknamePanel != null)
+            {
+                nicknamePanel.SetActive(true);
+            }
+        }
+        else
+        {
+            Debug.Log($"API: {PlayerPrefs.GetInt("Car")}");
+            //StartCoroutine(ChangeCar());
+        }
+    }
+
+    IEnumerator ChangeCar()
+    {
+        yield return new WaitUntil(() => Manager.Instance != null);
+        Manager.Instance.InitCar(PlayerPrefs.GetInt("Car"));
+    }
+
+    public void ChangeCar(int index)
+    {
+        foreach(var c in carModels)
+        {
+            c.SetActive(false);
+        }
+
+        carModels[index].SetActive(true);
     }
 
     private void Race_Start(InputAction.CallbackContext context)
@@ -54,29 +92,13 @@ public class PlayerInput : NetworkBehaviour
 
     private void FixedUpdate()
     {
-
+        _carController.Move(turn, accel, accel, handBrake);
         _racingController.pressRace = isRaceStart;
-    }
-
-    public override void FixedUpdateNetwork()
-    {
-        if(Runner.TryGetInputForPlayer<PlayerData>(Object.InputAuthority, out var input))
-        {
-            _carController.Move(input.HorizontalInput, input.VerticalInput, input.VerticalInput, handBrake);
-        }
     }
 
     public enum PlayerInputButtons
     {
         None,
         Brake,
-    }
-
-    public PlayerData GetPlayerNetworkInput()
-    {
-        PlayerData data = new PlayerData();
-        data.HorizontalInput = turn;
-        data.VerticalInput = accel;
-        return data;
     }
 }
